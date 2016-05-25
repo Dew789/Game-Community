@@ -1,0 +1,1 @@
+@cmd /k "E:\github\Game Community\venv\Scripts\activate"
