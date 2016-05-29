@@ -1,0 +1,8 @@
+<p>亲爱的 {{ user.username }},</p>
+<p> 欢迎来到 <b>游戏社区</b>!</p>
+<p>请尽快确认你的账户 <a href="{{ url_for('auth.confirm', token=token, _external=True) }}">点击</a>.</p>
+<p>或者，你也可以把当前地址复制到浏览器的地址栏中</p>
+<p>{{ url_for('auth.confirm', token=token, _external=True) }}</p>
+<p>真诚地,</p>
+<p>游戏社区全队</p>
+<p><small>注意：邮件地址是安全的</small></p>

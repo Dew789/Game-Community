@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}游戏社区 - 请确认您的账户{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>
+        您好, {{ current_user.username }}!
+    </h1>
+    <h3>你还没有确认你的账户.</h3>
+    <p>
+        在你登陆网站前你需要确认你的账户，
+        检查一下你的邮箱，你应该收到一封确认邮件。
+    </p>
+    <p>
+        需要另一封确认邮件？
+        <a href="{{ url_for('auth.resend_confirmation') }}">点击这里</a>
+    </p>
+</div>
+{% endblock %}

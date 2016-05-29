@@ -1,0 +1,13 @@
+Dear {{ user.username }},
+
+欢迎来到，游戏社区!
+
+请点击一下连接确认你的账户：
+
+{{ url_for('auth.confirm', token=token, _external=True) }}
+
+真诚地,
+
+游戏社区团队
+
+注意：邮件地址是安全的

@@ -6,9 +6,15 @@
     <div class="page-header">
         <h1>登陆</h1>
     </div>
-    {{ wtf.quick_form(form) }}
+    <div class="col-md-4">
+        {{ wtf.quick_form(form) }}
+    </div>
     <p>
-        New user?
-        <a href="{{ url_for('auth.register') }}">Click here to register</a>
+        新用户?
+        <a href="{{ url_for('auth.register') }}">点击这里</a>
     </p>
+    <p>
+        忘记密码?
+        <a href="{{ url_for('auth.password_reset_request') }}">点击这里</a>
+    </p>       
 {% endblock %}
