@@ -87,6 +87,24 @@ class User(db.Model, UserMixin):
         self.password = new_password
         db.session.add(self)
         return True
+
+    def generate_change_email_token(self, new_email, expiration=3600):
+        ''' 生成用户修改邮箱时的安全令牌'''
+        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        return s.dumps({'change_email': self.id, 'new_email' : new_email})
+
+    def change_email(self, token):
+        '''检验用户重修改邮箱邮件的安全令牌是否正确，如果正确将新密码存入数据库'''
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return False
+        if data.get('change_email') != self.id:
+            return False
+        self.email = data.get('new_email')
+        db.session.add(self)
+        return True
     
 
     def __repr__(self):

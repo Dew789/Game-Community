@@ -57,4 +57,14 @@ class PasswordResetForm(Form):
         if User.query.filter_by(email=field.data).first() is None:
             raise ValidationError('此邮箱未注册')
 
-        
+class EmailResetForm(Form):
+    """修改邮箱地址表单"""
+    password = PasswordField('您的密码', validators = [Required()])
+    email = StringField('请输入新邮箱', validators = [Required(), Email()])
+    submit = SubmitField('提交')
+
+    def validate_email(self, field):
+        if User.query.filter_by(email=field.data).first():
+            raise ValidationError('此邮箱已经被注册')
+
+            

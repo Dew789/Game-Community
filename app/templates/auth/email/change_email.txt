@@ -1,11 +1,13 @@
 Dear {{ user.username }},
 
-To confirm your new email address click on the following link:
+欢迎来到，游戏社区!
+
+请点击一下地址来修改确认修改您的新邮箱
 
 {{ url_for('auth.change_email', token=token, _external=True) }}
 
-Sincerely,
+真诚地,
 
-The Flasky Team
+游戏社区团队
 
-Note: replies to this email address are not monitored.
+注意：邮件地址是安全的
