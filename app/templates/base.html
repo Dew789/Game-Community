@@ -19,6 +19,11 @@
             <li><a href="/">主页</a></li>
         </ul>
         {% if current_user.is_authenticated %}
+        <ul class="nav navbar-nav">
+            <li>
+                <a href="{{ url_for('main.user', username=current_user.username) }}">Profile</a>
+            </li>
+        </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="{{ url_for('auth.change_password') }}">修改密码</a></li>
                 <li><a href="{{ url_for('auth.change_email_request') }}">修改邮箱</a></li>
@@ -47,4 +52,9 @@
 <div class="container">
     {% block page_content %}{%endblock%}
 </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    {{ moment.include_moment() }}
 {% endblock %}

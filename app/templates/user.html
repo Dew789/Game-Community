@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}游戏社区 - {{ user.name }}{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+<p>
+{% if user.location %}
+From {{ user.location }}
+{% endif %}
+</p>
+{% if user.about_me %}<p>{{ user.about_me }}</p>{% endif %}
+<p>
+    注册日期 {{ moment(user.member_since).format('L') }}
+</p>
+<p>
+    距上次登陆 {{moment(user.last_seen).fromNow() }}
+</p>
+</div>
+{% if user == current_user %}
+    <a class="btn btn-default" href="{{ url_for('main.edit_profile') }}">修改资料</a>
+{% endif %}
+{% if current_user.is_administrator() %}
+    <a class="btn btn-danger" href="{{ url_for('main.find_profile_admin') }}">修改其他用户资料</a>
+{% endif %}
+{% endblock %}

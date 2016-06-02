@@ -53,7 +53,8 @@ def register():
         token = user.generate_confirmation_token()
         send_email(user.email, '请确认你的账户','auth/email/confirm', user=user, token=token)
         flash('一封确认邮件已经发送到了你的邮箱')
-        return redirect(url_for('auth.login'))
+        login_user(user)
+        return redirect(url_for('main.index'))
     return render_template('auth/register.html', form = form)
 
 
@@ -75,9 +76,11 @@ def before_request():
     1.用户已经登陆，且没有通过邮件进行认证
     2.用户请求的路由不是'auth'端点，不是静态文件
     '''
-    if current_user.is_authenticated and not current_user.confirmed \
-            and request.endpoint[:5] != 'auth.'and request.endpoint != 'static':
-        return redirect(url_for('auth.unconfirmed'))
+    if current_user.is_authenticated:
+        # 更新用户最后登陆时间
+        current_user.ping()
+        if not current_user.confirmed and request.endpoint[:5] != 'auth.'and request.endpoint != 'static':
+            return redirect(url_for('auth.unconfirmed'))
 
 @auth.route('/unconfirmed')
 def unconfirmed():

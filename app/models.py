@@ -1,8 +1,9 @@
-from flask.ext.login import UserMixin
+from flask.ext.login import UserMixin, AnonymousUserMixin
 from flask import current_app
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db, login_manager
+from datetime import datetime
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -11,15 +12,59 @@ def load_user(user_id):
     '''
     return User.query.get(int(user_id))
 
+class Permission(object):
+    '''
+    定义程序的权限
+    1.关注用户 0b00000001
+    2.发表评论 0b00000010
+    3.写文章 0b00000100
+    4.管理他人评论 0b00001000
+    5.网站管理 0b10000000
+    '''
+    FOLLOW = 0x01
+    COMMENT = 0x02
+    WRITE_ARTICLES = 0x04
+    MODERATE_COMMENTS = 0x08
+    ADMINISTER = 0x80
+        
+
 
 class Role(db.Model):
     '''
     定义角色模型，表明用户的身份
+    1.匿名用户：未登录只有阅读权限 0b000000
+    2.用户，拥有发布文章、发表评论、关注用户这是默认的角色 0b00000111
+    3.协管员，具有审查不当评论的权限 0b00001111
+    3.管理员，具有所有权限0b11111111
     '''
+    @staticmethod
+    def insert_roles():
+        '''自动添加角色名，并赋予权限'''
+        roles = {
+            'User' : (Permission.FOLLOW |
+                      Permission.COMMENT |
+                      Permission.WRITE_ARTICLES, True),
+            'Moderator': (Permission.FOLLOW |
+                          Permission.COMMENT |
+                          Permission.WRITE_ARTICLES |
+                          Permission.MODERATE_COMMENTS, False),
+            'Administrator': (0xff, False)
+            }
+        for r in roles:
+            role = Role.query.filter_by(name=r).first()
+            if role is None:
+                role = Role(name=r)
+                role.permissions = roles[r][0]
+                role.default = roles[r][1]
+                db.session.add(role)
+                db.session.commit()
+
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
-    users = db.relationship('User')
+    default = db.Column(db.Boolean, default = False, index = True)
+    users = db.relationship('User', backref = 'role')
+    permissions = db.Column(db.Integer)
 
     def __repr__(self):
         return '<Role %r>' % self.name
@@ -29,12 +74,36 @@ class Role(db.Model):
 class User(db.Model, UserMixin):
     '''用户模型'''
     __tablename__ = 'users'
+
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.Integer, unique=True, index=True)
     username = db.Column(db.String(64), unique=True, index=True)
     password_hash = db.Column(db.String(128))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     confirmed = db.Column(db.Boolean, default=False)
+    about_me = db.Column(db.Text())
+    location = db.Column(db.String(64))
+    member_since = db.Column(db.DateTime(), default=datetime.utcnow)
+    last_seen = db.Column(db.DateTime(), default=datetime.utcnow)   
+
+    def __init__(self, **kwargs):
+        ''' 调用db.Model的构造函数，如果不存在角色名根据情况赋予'''
+        super(User, self).__init__(**kwargs)
+
+        if self.role is None:
+            if self.email == current_app.config['FLASKY_ADMIN']:
+                self.role = Role.query.filter_by(permissions=0xff).first()
+        if self.role is None:
+            self.role = Role.query.filter_by(default=True).first()
+
+    def can(self, permissions):
+        '''判断角色的权限'''
+        return self.role is not None and (self.role.permissions & permissions) == permissions
+
+    def is_administrator(self):
+        '''判断角色是否为管理员'''
+        return self.can(Permission.ADMINISTER)
+            
 
     @property
     def password(self):
@@ -105,8 +174,21 @@ class User(db.Model, UserMixin):
         self.email = data.get('new_email')
         db.session.add(self)
         return True
-    
 
+    def ping(self):
+        '''刷新用户最后登录时间'''
+        self.last_seen = datetime.utcnow()
+        db.session.add(self)
+    
     def __repr__(self):
         return '<User %r>' % self.username
 
+
+
+class AnonymousUser(AnonymousUserMixin):
+    '''定义匿名类，使current_user不论在用户是否登陆的情况下都可以查询权限'''
+    def can(self, permissions):
+        return False
+    def is_administrator(self):
+        return False
+login_manager.anonymous_user = AnonymousUser
