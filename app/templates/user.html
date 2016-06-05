@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% import "_macros.html" as macros %}
 
-{% block title %}游戏社区 - {{ user.name }}{% endblock %}
+{% block title %}游戏社区 - {{ user.username }}{% endblock %}
 
 {% block page_content %}
 <div class="page-header">
@@ -23,4 +24,9 @@ From {{ user.location }}
 {% if current_user.is_administrator() %}
     <a class="btn btn-danger" href="{{ url_for('main.find_profile_admin') }}">修改其他用户资料</a>
 {% endif %}
+<h3>{{ user.username }} 的文章</h3>
+{% include '_posts.html' %}
+<div class="pagination">
+    {{ macros.pagination_widget(pagination, 'main.user', username = user.username) }}
+</div>
 {% endblock %}
