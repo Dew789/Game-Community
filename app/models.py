@@ -28,6 +28,14 @@ class Permission(object):
     WRITE_ARTICLES = 0x04
     MODERATE_COMMENTS = 0x08
     ADMINISTER = 0x80
+
+class Follow(db.Model):
+    '''自定义用户关注关联表，使用两个一对多实现多对多'''
+    __tablename__ = 'follows'
+
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key = True)
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key = True)
+    timestamp = db.Column(db.DateTime, default = datetime.utcnow)
         
 
 
@@ -77,18 +85,26 @@ class User(db.Model, UserMixin):
     '''用户模型'''
     __tablename__ = 'users'
 
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.Integer, unique=True, index=True)
-    username = db.Column(db.String(64), unique=True, index=True)
+    id = db.Column(db.Integer, primary_key = True)
+    email = db.Column(db.Integer, unique = True, index = True)
+    username = db.Column(db.String(64), unique = True, index = True)
     password_hash = db.Column(db.String(128))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
-    confirmed = db.Column(db.Boolean, default=False)
+    confirmed = db.Column(db.Boolean, default = False)
     about_me = db.Column(db.Text())
     location = db.Column(db.String(64))
-    member_since = db.Column(db.DateTime(), default=datetime.utcnow)
-    last_seen = db.Column(db.DateTime(), default=datetime.utcnow) 
-    # 与专栏文章的一对多关系 
+    member_since = db.Column(db.DateTime(), default = datetime.utcnow)
+    last_seen = db.Column(db.DateTime(), default = datetime.utcnow)
+    # 与文章的一对多关系 
     posts = db.relationship('Post', backref = 'author', lazy = 'dynamic')
+    # 用户关注的人
+    followed = db.relationship('Follow', foreign_keys = [Follow.follower_id],
+                                backref = db.backref('follower', lazy='joined'), 
+                                lazy = 'dynamic', cascade = 'all, delete-orphan')
+    # 关注用户的人      
+    followers = db.relationship('Follow',foreign_keys = [Follow.followed_id],
+                                backref = db.backref('followed', lazy='joined'),
+                                lazy = 'dynamic',cascade = 'all, delete-orphan')
 
     def __init__(self, **kwargs):
         ''' 调用db.Model的构造函数，如果不存在角色名根据情况赋予'''
@@ -184,6 +200,31 @@ class User(db.Model, UserMixin):
         self.last_seen = datetime.utcnow()
         db.session.add(self)
 
+    def follow(self, user):
+        '''关注用户'''
+        if not self.is_following(user):
+            f = Follow(follower = self, followed = user)
+            db.session.add(f)
+
+    def unfollow(self, user):
+        '''解除关注'''
+        f = self.followed.filter_by(followed_id = user.id).first()
+        if f:
+            db.session.delete(f)
+
+    def is_following(self, user):
+        '''是否关注'''
+        return self.followed.filter_by(followed_id = user.id).first() is not None
+
+    def is_followed_by(self, user):
+        '''是否被关注'''
+        return self.followers.filter_by(follower_id = user.id).first() is not None
+
+    @property
+    def followed_posts(self):
+        '''返回用户关注者的文章'''
+        return Post.query.join(Follow, Follow.followed_id == Post.author_id).filter(Follow.follower_id == self.id)
+
     @staticmethod
     def generate_fake(count = 100):
         '''批量生成虚拟用户'''
@@ -194,12 +235,12 @@ class User(db.Model, UserMixin):
         seed()
         for i in range(count):
             u = User(email = forgery_py.internet.email_address(),
-                    username=forgery_py.internet.user_name(True),
-                    password=forgery_py.lorem_ipsum.word(),
-                    confirmed=True,
-                    location=forgery_py.address.city(),
-                    about_me=forgery_py.lorem_ipsum.sentence(),
-                    member_since=forgery_py.date.date(True))
+                    username = forgery_py.internet.user_name(True),
+                    password = forgery_py.lorem_ipsum.word(),
+                    confirmed = True,
+                    location = forgery_py.address.city(),
+                    about_me = forgery_py.lorem_ipsum.sentence(),
+                    member_since = forgery_py.date.date(True))
             db.session.add(u)
             try:
                 db.session.commit()
@@ -218,6 +259,7 @@ class AnonymousUser(AnonymousUserMixin):
     def is_administrator(self):
         return False
 login_manager.anonymous_user = AnonymousUser
+
 
 class Post(db.Model):
     '''定于用户专栏文章模型'''
@@ -256,3 +298,4 @@ class Post(db.Model):
         
 # 设置sqlalchemy监听时间
 db.event.listen(Post.body, 'set', Post.on_changed_body)
+
