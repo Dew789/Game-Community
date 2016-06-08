@@ -93,6 +93,8 @@ class User(db.Model, UserMixin):
     confirmed = db.Column(db.Boolean, default = False)
     about_me = db.Column(db.Text())
     location = db.Column(db.String(64))
+    avatar_big = db.Column(db.String(64), default = 'app/static/photo/ul.png')
+    avatar_small = db.Column(db.String(64), default = 'app/static/photo/u.png')
     member_since = db.Column(db.DateTime(), default = datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default = datetime.utcnow)
     # 与文章的一对多关系 

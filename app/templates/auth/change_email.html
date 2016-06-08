@@ -3,10 +3,9 @@
 {% block title %}游戏社区 - 修改邮箱{% endblock %}
 
 {% block page_content %}
-    <div class="page-header">
-        <h1>修改邮箱</h1>
-    </div>
-    <div class="col-md-4">
-        {{ wtf.quick_form(form) }}
+    {% include '_account.html' %}
+    <div class="col-md-8">
+        <h2 class="page-header">修改邮箱</h2>
+        <div class="col-md-6">{{ wtf.quick_form(form) }}</div>
     </div>
 {% endblock %}

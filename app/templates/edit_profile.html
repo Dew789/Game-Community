@@ -3,10 +3,15 @@
 {% block title %}游戏社区 - 修改资料{% endblock %}
 
 {% block page_content %}
-    <div class="page-header">
-        <h1>修改资料</h1>
-    </div>
-    <div class="col-md-4">
-        {{ wtf.quick_form(form) }}
+    {% include '_account.html' %}
+    <div class="col-md-8">
+        <h2 class="page-header">修改资料</h2>
+        <div class="col-md-6">
+            <p style="font-size:14px; font-weight:bold;">头像</p>
+            <p><img src={{ current_user.avatar_big[3:] }} alt="头像" />
+               <a href="{{ url_for('main.upload_portrait') }}">更换头像</a>
+            </p>
+            {{ wtf.quick_form(form) }}
+        </div>
     </div>
 {% endblock %}

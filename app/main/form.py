@@ -4,6 +4,7 @@ from flask.ext.pagedown.fields import PageDownField
 from wtforms.validators import Required, Length, Email, Regexp, EqualTo
 from wtforms import ValidationError
 from ..models import Role, User
+from flask_wtf.file import FileAllowed, FileRequired, FileField
 
 class EditProfileForm(Form):
     '''普通用户资料管理表单'''
@@ -46,3 +47,8 @@ class PostForm(Form):
     '''专栏文章表单类'''
     body = PageDownField("请写下你的想法吧", validators=[Required()])
     submit = SubmitField('提交')
+
+class UploadPortraitForm(Form):
+    '''上传头像表单'''
+    photo = FileField('', validators=[FileRequired(), FileAllowed(['jpg', 'png'], '只能上传图片')])
+    submit = SubmitField('更新头像')

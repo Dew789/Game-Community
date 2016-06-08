@@ -4,49 +4,44 @@
 {% block title %}游戏社区 - {{ user.username }}{% endblock %}
 
 {% block page_content %}
-<div class="page-header">
-    <p>
-        {% if user.location %}
-        From {{ user.location }}
+    <div class="page-header">
+        <img class="img-rounded profile-thumbnail" src="{{ user.avatar_big[3:] }}">
+        <div class="profile-header">
+            <p>
+                {% if user.location %}
+                From {{ user.location }}
+                {% endif %}
+            </p>
+                {% if user.about_me %}<p>{{ user.about_me }}</p>{% endif %}
+            <p>
+                注册日期 {{ moment(user.member_since).format('L') }}
+            </p>
+            <p>
+                距上次登陆 {{moment(user.last_seen).fromNow() }}
+            </p>
+        </div>
+    </div>
+    <div>
+        {% if current_user.can(Permission.FOLLOW) and user != current_user %}
+            {% if not current_user.is_following(user) %}
+                <a href="{{ url_for('main.follow', username = user.username) }}"class="btn btn-primary">关注</a>
+            {% else %}
+                <a href="{{ url_for('main.unfollow', username = user.username) }}"class="btn btn-default">取消关注</a>
+            {% endif %}
         {% endif %}
-    </p>
-        {% if user.about_me %}<p>{{ user.about_me }}</p>{% endif %}
-    <p>
-        注册日期 {{ moment(user.member_since).format('L') }}
-    </p>
-    <p>
-        距上次登陆 {{moment(user.last_seen).fromNow() }}
-    </p>
-</div>
-<div>
-    {% if user == current_user %}
-        <a class="btn btn-default" href="{{ url_for('main.edit_profile') }}">修改资料</a>
-    {% endif %}
-    {% if current_user.is_administrator() %}
-        <a class="btn btn-danger" href="{{ url_for('main.find_profile_admin') }}">修改其他用户资料</a>
-    {% endif %}
-</div>
-<div>
-    {% if current_user.can(Permission.FOLLOW) and user != current_user %}
-        {% if not current_user.is_following(user) %}
-            <a href="{{ url_for('main.follow', username = user.username) }}"class="btn btn-primary">关注</a>
-        {% else %}
-            <a href="{{ url_for('main.unfollow', username = user.username) }}"class="btn btn-default">取消关注</a>
+        <a href="{{ url_for('main.followers', username=user.username) }}">
+            关注者: <span class="badge">{{ user.followers.count() }}</span>
+        </a>
+        <a href="{{ url_for('main.followed_by', username=user.username) }}">
+            正在关注: <span class="badge">{{ user.followed.count() }}</span>
+        </a>
+        {% if current_user.is_authenticated and user != current_user and user.is_following(current_user) %}
+            | <span class="label label-default">正在关注你</span>
         {% endif %}
-    {% endif %}
-    <a href="{{ url_for('main.followers', username=user.username) }}">
-        关注者: <span class="badge">{{ user.followers.count() }}</span>
-    </a>
-    <a href="{{ url_for('main.followed_by', username=user.username) }}">
-        正在关注: <span class="badge">{{ user.followed.count() }}</span>
-    </a>
-    {% if current_user.is_authenticated and user != current_user and user.is_following(current_user) %}
-        | <span class="label label-default">正在关注你</span>
-    {% endif %}
-</div>
-<h3>{{ user.username }} 的文章</h3>
-{% include '_posts.html' %}
-<div class="pagination">
-    {{ macros.pagination_widget(pagination, 'main.user', username = user.username) }}
-</div>
+    </div>
+    <h3>{{ user.username }} 的文章</h3>
+    {% include '_posts.html' %}
+    <div class="pagination">
+        {{ macros.pagination_widget(pagination, 'main.user', username = user.username) }}
+    </div>
 {% endblock %}

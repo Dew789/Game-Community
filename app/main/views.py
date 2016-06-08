@@ -1,10 +1,11 @@
 from flask import render_template, flash, redirect, url_for, abort, request, current_app, make_response
 from . import main
 from ..models import User, Role, Permission, Post
-from .form import EditProfileForm, EditProfileAdminForm, FindUserForm, PostForm
+from .form import EditProfileForm, EditProfileAdminForm, FindUserForm, PostForm, UploadPortraitForm
 from flask.ext.login import login_required, current_user
 from .. import db
 from ..decorators import admin_required, permission_required
+from PIL import Image
 
 @main.route('/')
 def index():
@@ -17,7 +18,7 @@ def index():
     else:
         query = Post.query
     pagination = query.order_by(Post.timestamp.desc()).paginate(
-        page, per_page = current_app.config['POSTS_PER_PAGE'], error_out=False)
+        page, per_page = current_app.config['POSTS_PER_PAGE'], error_out = False)
     posts = pagination.items
     return render_template('index.html', posts = posts,
                            show_followed = show_followed, pagination = pagination)
@@ -55,7 +56,7 @@ def user(username):
 def edit_profile():
     '''普通用户编辑用户资料'''
     form = EditProfileForm()
-    if form.validate_on_submit():
+    if form.validate_on_submit(): 
         current_user.location = form.location.data
         current_user.about_me = form.about_me.data
         db.session.add(current_user)
@@ -199,3 +200,23 @@ def followed_by(username):
     return render_template('followers.html', user = user, title = "你被谁关注",
                            endpoint = 'main.followed_by', pagination = pagination,
                            follows = follows)
+
+@main.route('/portrait', methods = ['GET', 'POST'])
+@login_required
+def upload_portrait():
+    '''上传头像'''
+    form = UploadPortraitForm()
+    if form.validate_on_submit():
+        url_big = 'app/static/photo/ul'+ str(current_user.id) + '.png' 
+        url_small = 'app/static/photo/u'+ str(current_user.id) + '.png' 
+        im = Image.open(form.photo.data)
+        out = im.resize((250, 250))
+        out.save(url_big, 'PNG')
+        out.thumbnail((25, 25))
+        out.save(url_small, 'PNG')
+        current_user.avatar_big = url_big
+        current_user.avatar_small = url_small
+        db.session.add(current_user)
+        flash('头像上传成功')
+        return redirect(url_for('main.edit_profile'))
+    return render_template('upload_portrait.html', form = form)

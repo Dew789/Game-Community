@@ -1,0 +1,8 @@
+<div class="list-group col-md-2" style="margin-top:40px">
+    <a class="list-group-item" href="{{ url_for('main.edit_profile') }}">修改资料</a>  
+    {% if current_user.is_administrator() %}
+        <a class="list-group-item" href="{{ url_for('main.find_profile_admin') }}">修改其他用户资料</a>
+    {% endif %}
+    <a href="{{ url_for('auth.change_password') }}" class="list-group-item">修改密码</a>
+    <a href="{{ url_for('auth.change_email_request') }}" class="list-group-item">修改邮箱</a>
+</div>

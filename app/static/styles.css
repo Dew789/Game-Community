@@ -23,6 +23,7 @@ div.post-date {
 }
 div.post-author {
     font-weight: bold;
+    margin-left:30px
 }
 div.post-thumbnail {
     position: absolute;
@@ -30,6 +31,9 @@ div.post-thumbnail {
 div.post-content {
     margin-left: 48px;
     min-height: 48px;
+}
+div.post-footer {
+    text-align: right;
 }
 .aside {
     margin-top:50px;
