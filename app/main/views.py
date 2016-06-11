@@ -1,7 +1,7 @@
 from flask import render_template, flash, redirect, url_for, abort, request, current_app, make_response
 from . import main
-from ..models import User, Role, Permission, Post
-from .form import EditProfileForm, EditProfileAdminForm, FindUserForm, PostForm, UploadPortraitForm
+from ..models import User, Role, Permission, Post, Comment
+from .form import EditProfileForm, EditProfileAdminForm, FindUserForm, PostForm, UploadPortraitForm, CommentForm
 from flask.ext.login import login_required, current_user
 from .. import db
 from ..decorators import admin_required, permission_required
@@ -119,10 +119,24 @@ def write_post():
         return redirect(url_for('main.index'))
     return render_template('write_post.html', form = form)
 
-@main.route('/post/<int:id>')
+@main.route('/post/<int:id>', methods=['GET', 'POST'])
 def post(id):
+    '''文章及评论页面'''
     post = Post.query.get_or_404(id)
-    return render_template('post.html', posts=[post])
+    form = CommentForm()
+    if form.validate_on_submit():
+        comment = Comment(body = form.body.data,post = post,
+                          author = current_user._get_current_object())
+        db.session.add(comment)
+        flash('评论提交成功')
+        return redirect(url_for('.post', id = post.id, page = -1))
+    page = request.args.get('page', 1, type = int)
+    if page == -1:
+        page = (post.comments.count() - 1) // 6
+    pagination = post.comments.order_by(Comment.timestamp.asc()).paginate(page, per_page= 5, error_out=False)
+    comments = pagination.items
+    return render_template('post.html', posts=[post], form=form,
+                           comments=comments, pagination=pagination)
 
 @main.route('/edit/<int:id>', methods = ['GET', 'POST'])
 @login_required

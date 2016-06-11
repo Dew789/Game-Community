@@ -97,8 +97,10 @@ class User(db.Model, UserMixin):
     avatar_small = db.Column(db.String(64), default = 'app/static/photo/u.png')
     member_since = db.Column(db.DateTime(), default = datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default = datetime.utcnow)
-    # 与文章的一对多关系 
+    # 用户文章
     posts = db.relationship('Post', backref = 'author', lazy = 'dynamic')
+    # 用户对文章的评论
+    comments = db.relationship('Comment', backref='author', lazy='dynamic')
     # 用户关注的人
     followed = db.relationship('Follow', foreign_keys = [Follow.follower_id],
                                 backref = db.backref('follower', lazy='joined'), 
@@ -271,6 +273,8 @@ class Post(db.Model):
     timestamp = db.Column(db.DateTime, index = True, default = datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     body_html = db.Column(db.Text)
+    # 文章的评论
+    comments = db.relationship('Comment', backref='post', lazy='dynamic')
 
     @staticmethod
     def generate_fake(count = 100):
@@ -298,6 +302,80 @@ class Post(db.Model):
             markdown(value, output_format = 'html'),
             tags = allowed_tags, strip = True))
         
-# 设置sqlalchemy监听时间
+# 设置文章监听器监，文章变化文章的markdown格式变化
 db.event.listen(Post.body, 'set', Post.on_changed_body)
 
+
+class Comment(db.Model):
+    '''对文章的评论'''
+    __tablename__ = 'comments'
+    id = db.Column(db.Integer, primary_key = True)
+    body = db.Column(db.Text)
+    body_html = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, index = True, default = datetime.utcnow)
+    disabled = db.Column(db.Boolean)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
+
+    @staticmethod
+    def on_changed_body(target, value, oldvalue, initiator):
+        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'code', 'em', 'i',
+                        'strong']
+        target.body_html = bleach.linkify(bleach.clean(
+            markdown(value, output_format='html'),
+            tags=allowed_tags, strip=True))
+# 设置评论监听器，评论变化markdown格式变化
+db.event.listen(Comment.body, 'set', Comment.on_changed_body)
+
+class Game(db.Model):
+    """游戏信息"""
+    __tablename__ = 'games'
+    id = db.Column(db.Integer, primary_key = True)
+    name_ch = db.Column(db.String(128), unique = True)
+    name_en = db.Column(db.String(128), unique = True)
+    game_type = db.Column(db.String(64))
+    producer = db.Column(db.String(64))
+    publisher = db.Column(db.String(64))
+    release_time = db.Column(db.Date)
+    introduction = db.Column(db.Text)
+    cover = db.Column(db.String(64))
+
+    @staticmethod
+    def insert_games(count = 10):
+        '''向游戏库中添加游戏'''
+        from urllib import request
+        from bs4 import BeautifulSoup
+
+        def insert_game(url):
+            '''抓取游民星空的游戏信息'''
+            html = request.urlopen(url).read()
+            soup = BeautifulSoup(html, 'html.parser')
+            games = soup.select('.R')
+            for game in games:
+                # 抓取游戏简介
+                detail = game.select('.R_1')[0].a['href']
+                html = request.urlopen(detail).read()
+                soup = BeautifulSoup(html, 'html.parser')
+                brief = game.select('.R2_1')
+                # 解决时间格式不统一问题
+                try:
+                    release_time = datetime.strptime(brief[5].span.string, '%Y.%m.%d')
+                except:
+                    release_time = None
+                g = Game(name_ch = brief[0].a.string,
+                         name_en = brief[1].span.string,
+                         game_type = brief[2].span.string,
+                         introduction = soup.select('.YXJS')[0].p.string,
+                         cover = game.select('.R_1')[0].img['src'],
+                         producer = brief[3].span.string,
+                         publisher = brief[4].span.string,
+                         release_time = release_time)
+                db.session.add(g)
+                db.session.commit()
+
+        insert_game('http://ku.gamersky.com/sp/0-0-0-0-30-0.html')
+        i = 2
+        while i <= count:
+            url = 'http://ku.gamersky.com/sp/0-0-0-0-30-0_{}.html'.format(i)
+            i += 1
+            insert_game(url)

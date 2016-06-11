@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros %}
+{% block title %}游戏库{% endblock %}
+{% block page_content %}
+<div class="jumbotron">
+    <div style="float:left; margin-top:20px">
+        <img src="{{ game.cover }}" width="110" height="156">
+    </div>
+    <div style="margin-left:200px;">
+        <h2>{{ game.name_ch }}</h2>
+        <p>英文名称:{{ game.name_en }}</p>
+        <p>游戏类型:{{ game.game_type }}</p>
+        <p>游戏制作:{{ game.producer }}</p>
+        <p>游戏发行:{{ game.publisher }}</p>
+        <p>上市时间:{{ game.release_time }}</p>
+    </div>
+    <div>
+        <p>游戏简介:</p>
+        <p>{{ game.introduction }}</p>
+    </div>
+</div>
+{% endblock %}

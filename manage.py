@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from app import create_app, db
-from app.models import User, Role, Post
+from app.models import User, Role, Post, Comment, Game
 from flask.ext.script import Manager, Shell
 from flask.ext.migrate import Migrate, MigrateCommand
 
@@ -11,7 +11,7 @@ manager.add_command('database', MigrateCommand)
 
 def make_shell_context():
     '''初始化app示例，以及模型函数'''
-    return dict(app = app, db = db, User = User, Role = Role, Post = Post)
+    return dict(app = app, db = db, User = User, Role = Role, Post = Post, Comment = Comment, Game = Game)
 manager.add_command("shell", Shell(make_context = make_shell_context))
 
 if __name__ == '__main__':

@@ -9,7 +9,7 @@
         <ul class="nav nav-tabs">
             <li{% if not show_followed %} class="active"{% endif %}><a href="{{ url_for('main.show_all') }}">所有人</a></li>
             {% if current_user.is_authenticated %}
-            <li{% if show_followed %} class="active"{% endif %}><a href="{{ url_for('main.show_followed') }}">关注用户</a></li>
+            <li{% if g.flag == 'stg' %} class="active"{% endif %}><a href="{{ url_for('main.show_followed') }}">关注用户</a></li>
             {% endif %}
         </ul>
         {% include '_posts.html' %}

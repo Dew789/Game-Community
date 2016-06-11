@@ -23,6 +23,11 @@
                 <a href="{{ url_for('main.post', id = post.id) }}">
                     <span class="label label-default">原文链接</span>
                 </a>
+                <a href="{{ url_for('.post', id=post.id) }}#comments">
+                    <span class="label label-primary">
+                        {{ post.comments.count() }} 评论
+                    </span>
+                </a>
                 {% if current_user == post.author %}
                     <a href="{{ url_for('main.edit', id = post.id) }}">
                         <span class="label label-primary">编辑</span>

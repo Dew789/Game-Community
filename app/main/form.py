@@ -52,3 +52,8 @@ class UploadPortraitForm(Form):
     '''上传头像表单'''
     photo = FileField('', validators=[FileRequired(), FileAllowed(['jpg', 'png'], '只能上传图片')])
     submit = SubmitField('更新头像')
+
+class CommentForm(Form):
+    '''添加评论表单'''
+    body = StringField('你想说点什么', validators=[Required()])
+    submit = SubmitField('提交')
