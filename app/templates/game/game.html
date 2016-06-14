@@ -2,7 +2,7 @@
 {% import "_macros.html" as macros %}
 {% block title %}游戏库{% endblock %}
 {% block page_content %}
-<div class="jumbotron">
+<div class="jumbotron" >
     <div style="float:left; margin-top:20px">
         <img src="{{ game.cover }}" width="110" height="156">
     </div>
@@ -14,9 +14,79 @@
         <p>游戏发行:{{ game.publisher }}</p>
         <p>上市时间:{{ game.release_time }}</p>
     </div>
-    <div>
+    <script src="http://libs.baidu.com/jquery/1.10.2/jquery.min.js"></script>
+    {% if rated %}
+        {% for i in range(1,6)%}
+            <script>
+            $(document).ready(function(){
+              $("img#star{{i}}").hover(function(){
+                $("img.star:lt({{i}})").attr("src","/static/star-hover.png");
+                $("img.star:gt({{i-1}})").attr("src","/static/star.png");
+                },function(){
+                $("img#star1").attr("src","/static/{{rated[0]}}.png");
+                $("img#star2").attr("src","/static/{{rated[1]}}.png");
+                $("img#star3").attr("src","/static/{{rated[2]}}.png");
+                $("img#star4").attr("src","/static/{{rated[3]}}.png");
+                $("img#star5").attr("src","/static/{{rated[4]}}.png");
+              });
+            });
+            </script>
+        {% endfor%}
+            <div>
+                <h3>你的评分：</h3>
+                <a href="{{ url_for('game.set_score' ,score=2, id=game.id) }}" class="decorate">
+                    <img src="/static/{{rated[0]}}.png" id="star1" class="star" title="很差">
+                </a>
+                <a href="{{ url_for('game.set_score' ,score=4, id=game.id) }}" class="decorate">
+                    <img src="/static/{{rated[1]}}.png" id="star2" class="star" title="较差">
+                </a>
+                <a href="{{ url_for('game.set_score' ,score=6, id=game.id) }}" class="decorate">
+                    <img src="/static/{{rated[2]}}.png" id="star3" class="star" title="还行">
+                </a>
+                <a href="{{ url_for('game.set_score' ,score=8, id=game.id) }}" class="decorate">
+                    <img src="/static/{{rated[3]}}.png" id="star4" class="star" title="推荐">
+                </a>
+                <a href="{{ url_for('game.set_score' ,score=10, id=game.id) }}" class="decorate">
+                    <img src="/static/{{rated[4]}}.png" id="star5" class="star" title="力荐">
+                </a>
+            </div>
+    {% else %}
+        {% for i in range(1,6)%}
+            <script>
+            $(document).ready(function(){
+              $("img#star{{i}}").hover(function(){
+                $("img.star:lt({{i}})").attr("src","/static/star-hover.png");
+                $("img.star:gt({{i-1}})").attr("src","/static/star.png");
+                },function(){
+                $("img.star").attr("src","/static/star.png");
+              });
+            });
+            </script>
+        {% endfor%}
+            <div>
+                <h3>请评分：</h3>
+                <a href="{{ url_for('game.set_score' ,score=2, id=game.id) }}" class="decorate">
+                    <img src="/static/star.png" id="star1" class="star" title="很差">
+                </a>
+                <a href="{{ url_for('game.set_score' ,score=4, id=game.id) }}" class="decorate">
+                    <img src="/static/star.png" id="star2" class="star" title="较差">
+                </a>
+                <a href="{{ url_for('game.set_score' ,score=6, id=game.id) }}" class="decorate">
+                    <img src="/static/star.png" id="star3" class="star" title="还行">
+                </a>
+                <a href="{{ url_for('game.set_score' ,score=8, id=game.id) }}" class="decorate">
+                    <img src="/static/star.png" id="star4" class="star" title="推荐">
+                </a>
+                <a href="{{ url_for('game.set_score' ,score=10, id=game.id) }}" class="decorate">
+                    <img src="/static/star.png" id="star5" class="star" title="力荐">
+                </a>
+            </div>
+    {% endif %}
+    <div style="margin-top:20px">
         <p>游戏简介:</p>
         <p>{{ game.introduction }}</p>
     </div>
 </div>
 {% endblock %}
+
+

@@ -51,6 +51,13 @@
 </div>
 {% endblock %}
 
+{% block scripts %}
+    {{ super() }}
+    {{ moment.include_moment() }}
+    {{ moment.lang('zh-CN') }}
+    {{ pagedown.include_pagedown() }}
+{% endblock %}
+
 {% block content %}
 <div class="container">
     {% for message in get_flashed_messages() %}
@@ -63,12 +70,5 @@
 <div class="container">
     {% block page_content %}{%endblock%}
 </div>
-{% endblock %}
-
-{% block scripts %}
-    {{ super() }}
-    {{ moment.include_moment() }}
-    {{ moment.lang('zh-CN') }}
-    {{ pagedown.include_pagedown() }}
 {% endblock %}
 

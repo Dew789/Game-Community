@@ -110,6 +110,9 @@ class User(db.Model, UserMixin):
                                 backref = db.backref('followed', lazy='joined'),
                                 lazy = 'dynamic',cascade = 'all, delete-orphan')
 
+    # 对游戏的评分
+    scores = db.relationship('Score', backref='gamer',lazy='dynamic',cascade='all, delete-orphan')
+
     def __init__(self, **kwargs):
         ''' 调用db.Model的构造函数，如果不存在角色名根据情况赋予'''
         super(User, self).__init__(**kwargs)
@@ -339,6 +342,8 @@ class Game(db.Model):
     release_time = db.Column(db.Date)
     introduction = db.Column(db.Text)
     cover = db.Column(db.String(64))
+    # 游戏评分
+    scores = db.relationship('Score', backref='game', lazy='dynamic',cascade='all, delete-orphan')
 
     @staticmethod
     def insert_games(count = 10):
@@ -379,3 +384,11 @@ class Game(db.Model):
             url = 'http://ku.gamersky.com/sp/0-0-0-0-30-0_{}.html'.format(i)
             i += 1
             insert_game(url)
+
+class Score(db.Model):
+    '''对游戏的评分'''
+    __tablename__ = 'scores'
+
+    score = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key = True)
+    game_id = db.Column(db.Integer, db.ForeignKey('games.id'), primary_key = True)
