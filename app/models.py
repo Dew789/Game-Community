@@ -344,6 +344,13 @@ class Game(db.Model):
     cover = db.Column(db.String(64))
     # 游戏评分
     scores = db.relationship('Score', backref='game', lazy='dynamic',cascade='all, delete-orphan')
+    # 与其相似的游戏
+    similar_games = db.relationship('Recommend', backref='prim_game', lazy='dynamic',cascade='all, delete-orphan')
+
+    @property
+    def get_recommend(self):
+        return Game.query.join(Recommend, Recommend.rel_game_id == Game.id).\
+                filter(Recommend.prim_game_id == self.id).all()
 
     @staticmethod
     def insert_games(count = 10):
@@ -392,3 +399,35 @@ class Score(db.Model):
     score = db.Column(db.Integer)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key = True)
     game_id = db.Column(db.Integer, db.ForeignKey('games.id'), primary_key = True)
+
+    @staticmethod
+    def generate_fake():
+        '''生成随机评分用于测试推荐系统'''
+        from random import seed, randint, randrange
+        from sqlalchemy.exc import IntegrityError
+
+        seed()
+        for user_id in range(1, 103):
+            for i in range(50):
+                game_id = randint(1, 160)
+                score = randrange(2, 12, 2)
+                
+                s = Score(user_id = user_id,
+                             game_id = game_id,
+                             score = score)
+                db.session.add(s)
+                try:
+                    db.session.commit()
+                except IntegrityError:
+                    db.session.rollback()
+
+
+
+
+class Recommend(db.Model):
+    '''游戏之间基于距离的相似度评价'''
+    __tablename__ = 'recommends'
+
+    prim_game_id = db.Column(db.Integer, db.ForeignKey('games.id'), primary_key = True)
+    rel_game_id = db.Column(db.Integer, primary_key = True)
+    correlation = db.Column(db.Float)

@@ -79,6 +79,7 @@ def show_act():
 def profile(id):
     '''显示游戏资料页面'''
     game = Game.query.get_or_404(id)
+    recommend = game.get_recommend
     if current_user.is_authenticated:
         rated = current_user.scores.filter_by(game_id = id).first()
         if rated: 
@@ -86,7 +87,7 @@ def profile(id):
             rated = ['star-hover'] * rated + ['star'] * (5 - rated)
     else:
         rated = None
-    return render_template('game/game.html', game = game, rated = rated)
+    return render_template('game/game.html', game = game, rated = rated, games = recommend)
 
 @game.route('/set_score')
 @login_required
