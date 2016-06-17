@@ -16,21 +16,21 @@ class RegisterForm(Form):
     email = StringField('邮件', validators = [Required(), Email()])
     username = StringField('用户名', validators = [Required(), Length(1, 64), 
                             Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0, 
-                            '用户名必须由字母、下划线、数字、点号组成')])
-    password = PasswordField('密码', validators = [Required(), Length(1, 16), 
-                            EqualTo('password2', message='Passwords must match.')])
+                            '用户名只能由字母、下划线、数字、点号组成')])
+    password = PasswordField('密码', validators = [Required(), Length(8, 16), 
+                            EqualTo('password2', message='密码输入不一致')])
     password2 = PasswordField('确认密码', validators = [Required()])
     submit = SubmitField('注册')
 
     def validate_email(self, field):
         '''自定义验证函数，确保邮件唯一'''
         if User.query.filter_by(email = field.data).first():
-            raise ValidationError('Email already registered.')
+            raise ValidationError('邮箱已经被注册过了')
 
     def validate_username(self, field):
         '''自定义验证函数，确保用户名唯一'''
         if User.query.filter_by(username=field.data).first():
-            raise ValidationError('Username already in use.')
+            raise ValidationError('用户名已经被使用')
 
 class ChangePassword(Form):
     '''修改密码表单'''

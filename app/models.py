@@ -316,8 +316,8 @@ class Comment(db.Model):
     body = db.Column(db.Text)
     body_html = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index = True, default = datetime.utcnow)
-    disabled = db.Column(db.Boolean)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    disabled = db.Column(db.Boolean)
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
 
     @staticmethod
@@ -420,9 +420,6 @@ class Score(db.Model):
                     db.session.commit()
                 except IntegrityError:
                     db.session.rollback()
-
-
-
 
 class Recommend(db.Model):
     '''游戏之间基于距离的相似度评价'''

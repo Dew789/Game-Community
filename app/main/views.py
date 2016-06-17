@@ -6,6 +6,7 @@ from flask.ext.login import login_required, current_user
 from .. import db
 from ..decorators import admin_required, permission_required
 from PIL import Image
+from datetime import datetime
 
 @main.route('/')
 def index():
@@ -129,16 +130,14 @@ def post(id):
                           author = current_user._get_current_object())
         db.session.add(comment)
         flash('评论提交成功')
-        return redirect(url_for('.post', id = post.id, page = -1))
+        return redirect(url_for('main.post', id = post.id, page = 1))
     page = request.args.get('page', 1, type = int)
-    if page == -1:
-        page = (post.comments.count() - 1) // 6
-    pagination = post.comments.order_by(Comment.timestamp.asc()).paginate(page, per_page= 5, error_out=False)
+    pagination = post.comments.order_by(Comment.timestamp.desc()).paginate(page, per_page= 5, error_out=False)
     comments = pagination.items
     return render_template('post.html', posts=[post], form=form,
                            comments=comments, pagination=pagination)
 
-@main.route('/edit/<int:id>', methods = ['GET', 'POST'])
+@main.route('/edit/post/<int:id>', methods = ['GET', 'POST'])
 @login_required
 def edit(id):
     post = Post.query.get_or_404(id)
@@ -215,14 +214,16 @@ def followed_by(username):
                            endpoint = 'main.followed_by', pagination = pagination,
                            follows = follows)
 
+
 @main.route('/portrait', methods = ['GET', 'POST'])
 @login_required
 def upload_portrait():
-    '''上传头像'''
+    '''更新头像'''
     form = UploadPortraitForm()
     if form.validate_on_submit():
-        url_big = 'app/static/photo/ul'+ str(current_user.id) + '.png' 
-        url_small = 'app/static/photo/u'+ str(current_user.id) + '.png' 
+        stamp = str(int(datetime.now().timestamp()))
+        url_big = 'app/static/photo/ul'+ str(current_user.id) + stamp + '.png' 
+        url_small = 'app/static/photo/u'+ str(current_user.id) + stamp + '.png' 
         im = Image.open(form.photo.data)
         out = im.resize((250, 250))
         out.save(url_big, 'PNG')
@@ -234,3 +235,14 @@ def upload_portrait():
         flash('头像上传成功')
         return redirect(url_for('main.edit_profile'))
     return render_template('upload_portrait.html', form = form)
+
+@main.route('/del_comment')
+@login_required
+def del_comment():
+    comment_id = request.args.get('id', type=int)
+    comment = Comment.query.get_or_404(comment_id)
+    if current_user == comment.post.author or current_user.is_administrator():
+        db.session.delete(comment)
+        return redirect(url_for('main.post', id = comment.post.id))
+    flash('你没有删除权限')
+    return redirect(url_for('main.index'))

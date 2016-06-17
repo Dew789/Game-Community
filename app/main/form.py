@@ -55,5 +55,5 @@ class UploadPortraitForm(Form):
 
 class CommentForm(Form):
     '''添加评论表单'''
-    body = StringField('你想说点什么', validators=[Required()])
+    body = StringField('有什么感想', validators=[Required()])
     submit = SubmitField('提交')

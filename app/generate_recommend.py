@@ -1,3 +1,7 @@
+'''
+    向数据库添加游戏推荐表
+'''
+
 from math import sqrt
 from .models import Score, Game, Recommend
 from . import db
