@@ -1,0 +1,4 @@
+data-dev.sqlite
+/venv/
+__pycache__/
+start.bat
