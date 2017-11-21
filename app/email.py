@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from threading import Thread
 from flask import current_app, render_template
 from flask.ext.mail import Message

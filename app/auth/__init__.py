@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from flask import Blueprint
 
 auth = Blueprint('auth', __name__)

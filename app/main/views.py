@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from flask import render_template, flash, redirect, url_for, abort, request, current_app, make_response
 from . import main
 from ..models import User, Role, Permission, Post, Comment

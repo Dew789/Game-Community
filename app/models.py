@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from flask.ext.login import UserMixin, AnonymousUserMixin
 from flask import current_app
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
