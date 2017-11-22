@@ -427,5 +427,5 @@ class Recommend(db.Model):
     __tablename__ = 'recommends'
 
     prim_game_id = db.Column(db.Integer, db.ForeignKey('games.id'), primary_key = True)
-    rel_game_id = db.Column(db.Integer, primary_key = True)
+    rel_game_id = db.Column(db.Integer, db.ForeignKey('games.id'), primary_key = True)
     correlation = db.Column(db.Float)
