@@ -1,6 +1,6 @@
 alembic==0.8.6
 beautifulsoup4==4.4.1
-bleach==1.4.3
+bleach==3.3.0
 blinker==1.4
 bs4==0.0.1
 dominate==2.2.0
